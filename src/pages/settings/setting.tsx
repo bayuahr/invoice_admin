@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Sidebar } from "../components/Sidebar";
+import { Sidebar } from "../../components/Sidebar";
 import DataTable from "react-data-table-component";
 import Modal from "react-modal";
 import { Pencil, Trash } from "lucide-react";
-import { Header } from "../components/Header";
+import { Header } from "../../components/Header";
 
 export default function Setting() {
     const [loading, setLoading] = useState(true);

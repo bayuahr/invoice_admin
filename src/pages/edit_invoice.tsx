@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Sidebar } from "./components/Sidebar";
+import { Sidebar } from "../components/Sidebar";
 import { supabase } from "@/lib/supabase";
 export default function EditInvoice() {
     const router = useRouter();

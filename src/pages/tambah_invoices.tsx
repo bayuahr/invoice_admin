@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Sidebar } from "./components/Sidebar";
+import { Sidebar } from "../components/Sidebar";
 import { useRouter } from "next/router";
 
 export default function TambahInvoice() {

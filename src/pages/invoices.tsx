@@ -1,6 +1,6 @@
 import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Sidebar } from "./components/Sidebar";
+import { Sidebar } from "../components/Sidebar";
 import DataTable from "react-data-table-component";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
@@ -8,7 +8,7 @@ import { DateRangePicker } from "react-date-range";
 import { format } from "date-fns";
 import { useRouter } from "next/router";
 import { Pencil, Printer, Trash } from "lucide-react";
-import { Header } from "./components/Header";
+import { Header } from "../components/Header";
 
 export default function Invoices() {
     
