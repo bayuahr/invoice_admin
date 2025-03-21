@@ -11,7 +11,7 @@ export const Sidebar = () => {
             <nav>
                 <ul className="space-y-4">
                     <li>
-                        <a href="/invoices" className="block p-2 hover:bg-blue-700 rounded">Invoices</a>
+                        <a href="/" className="block p-2 hover:bg-blue-700 rounded">Invoices</a>
                     </li>
                     <li>
                         <button

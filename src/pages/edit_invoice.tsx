@@ -140,7 +140,7 @@ export default function EditInvoice() {
         console.log("Detail invoice inserted successfully");
         alert("Invoice berhasil ditambahkan");
 
-        router.push("/invoices");
+        router.push("/");
     };
     return (
         <div className="flex min-h-screen bg-gray-100">
@@ -362,7 +362,7 @@ export default function EditInvoice() {
                     <button
                         type="button"
                         className="px-4 py-2 bg-gray-400 text-white rounded"
-                        onClick={() => router.push("/invoices")}
+                        onClick={() => router.push("/")}
                     >
                         Batal
                     </button>

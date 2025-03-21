@@ -96,7 +96,7 @@ export default function TambahInvoice() {
         console.log("Detail invoice inserted successfully");
         alert("Invoice berhasil ditambahkan");
 
-        router.push("/invoices");
+        router.push("/");
     };
 
     // Detail Invoice
@@ -372,7 +372,7 @@ export default function TambahInvoice() {
                     <button
                         type="button"
                         className="px-4 py-2 bg-gray-400 text-white rounded"
-                        onClick={() => router.push("/invoices")}
+                        onClick={() => router.push("/")}
                     >
                         Batal
                     </button>
