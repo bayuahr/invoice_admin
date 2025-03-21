@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, Key, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Sidebar } from "./components/Sidebar";
 import { supabase } from "@/lib/supabase";
@@ -7,15 +7,15 @@ export default function EditInvoice() {
     const searchParams = useSearchParams();
     const invoiceId = searchParams.get("id");
 
-    const [invoice, setInvoice] = useState(null);
-    const [partners, setPartners] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [listUsaha, setListUsaha] = useState([]);
+    const [invoice, setInvoice] = useState<any>(null);
+    const [partners, setPartners] = useState<any>([]);
+    const [loading, setLoading] = useState<any>(false);
+    const [listUsaha, setListUsaha] = useState<any>([]);
 
     const [gross, setGross] = useState(0);
     const [diskon, setDiskon] = useState(0);
 
-    const [rows, setRows] = useState([]);
+    const [rows, setRows] = useState<any>([]);
     useEffect(() => {
         const fetchInvoice = async () => {
             if (!invoiceId) return;
@@ -73,7 +73,7 @@ export default function EditInvoice() {
         fetchUsaha();
     }, []);
 
-    const handleChange = (e) => {
+    const handleChange = (e : any) => {
         setInvoice({ ...invoice, [e.target.name]: e.target.value });
     };
 
@@ -81,10 +81,10 @@ export default function EditInvoice() {
         setRows([...rows, { SUB: rows.length + 1, DESCRIPTION: "", QTY: 0, UNIT_PRICE: 0, netAmount: "", INVOICES_NO: invoice.NO }]);
     };
 
-    const deleteRow = (id) => {
-        const updatedRows = rows.filter(row => row.SUB !== id);
+    const deleteRow = (id:any) => {
+        const updatedRows = rows.filter((row: { SUB: any; }) => row.SUB !== id);
 
-        const normalizedRows = updatedRows.map((row, index) => ({
+        const normalizedRows = updatedRows.map((row: any, index: number) => ({
             ...row,
             SUB: index + 1,
         }));
@@ -92,8 +92,8 @@ export default function EditInvoice() {
         setRows(normalizedRows);
     };
 
-    const handleChange2 = (id, field, value) => {
-        const updatedRows = rows.map(row =>
+    const handleChange2 = (id: any, field: string, value: string) => {
+        const updatedRows = rows.map((row: { SUB: any; }) =>
             row.SUB === id ? { ...row, [field]: value } : row
         );
 
@@ -102,7 +102,7 @@ export default function EditInvoice() {
 
     useEffect(() => {
         let totals = 0;
-        rows.map((row) => {
+        rows.map((row: { QTY: number; UNIT_PRICE: number; }) => {
             if (row.QTY !== 0 && row.UNIT_PRICE !== 0) {
                 totals += (row.QTY) * (row.UNIT_PRICE);
             }
@@ -130,7 +130,7 @@ export default function EditInvoice() {
         }
 
         console.log("Invoice inserted successfully");
-        const cleanedRows = rows.map(({ netAmount, ...rest }) => rest);
+        const cleanedRows = rows.map(({ netAmount, ...rest }:any) => rest);
         const { error: detailError } = await supabase.from("DETAIL_INVOICE").upsert(cleanedRows);
         if (detailError) {
             console.error("Detail insert error:", detailError);
@@ -233,7 +233,7 @@ export default function EditInvoice() {
                             name="PARTNER_ID"
                         >
                             <option value="">-- Pilih Partner --</option>
-                            {partners.map((partner) => (
+                            {partners.map((partner : any)=> (
                                 <option key={partner.ID} value={partner.ID}>
                                     {partner.NAMA}
                                 </option>
@@ -263,7 +263,7 @@ export default function EditInvoice() {
                             name="USAHA_ID"
                         >
                             <option value="">-- Pilih Usaha --</option>
-                            {listUsaha.map((usaha) => (
+                            {listUsaha.map((usaha:any) => (
                                 <option key={usaha.ID_USAHA} value={usaha.ID_USAHA}>
                                     {usaha.NAMA_USAHA}
                                 </option>
@@ -284,7 +284,7 @@ export default function EditInvoice() {
                             </tr>
                         </thead>
                         <tbody>
-                            {rows.map((row, index) => (
+                            {rows.map((row: { SUB: Key | null | undefined; DESCRIPTION: string | number | readonly string[] | undefined; QTY: string | number | readonly string[] | undefined; UNIT_PRICE: string | number | readonly string[] | undefined; }, index: number) => (
                                 <tr key={row.SUB}>
                                     <td className="border p-2 text-center">{index + 1}</td>
                                     <td className="border p-2">
@@ -314,7 +314,7 @@ export default function EditInvoice() {
                                         <input
                                             type="number"
                                             className="w-full p-1 border rounded"
-                                            value={(row.QTY) * (row.UNIT_PRICE) || 0}
+                                            value={(Number(row.QTY) * Number(row.UNIT_PRICE)) || 0}
                                             readOnly
                                         />
                                     </td>

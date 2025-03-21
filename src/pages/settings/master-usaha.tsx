@@ -9,11 +9,11 @@ import { Header } from "../components/Header";
 export default function MasterUsaha() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
-    const [masterUsaha, setMasterUsaha] = useState([]);
+    const [masterUsaha, setMasterUsaha] = useState<any>([]);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [formData, setFormData] = useState({});
     const [isEdit, setIsEdit] = useState(false);
-
+    
     useEffect(() => {
         const fetchMasterUsaha = async () => {
             setLoading(true);
