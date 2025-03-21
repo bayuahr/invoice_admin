@@ -14,7 +14,7 @@ export const Sidebar = () => {
                         <a href="/invoices" className="block p-2 hover:bg-blue-700 rounded">Invoices</a>
                     </li>
                     <li>
-                        <button 
+                        <button
                             className="w-full flex justify-between items-center p-2 hover:bg-blue-700 rounded"
                             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                         >
@@ -23,8 +23,7 @@ export const Sidebar = () => {
                         {isSettingsOpen && (
                             <ul className="ml-4 mt-2 space-y-2">
                                 <li><a href="/settings/master-usaha" className="block p-2 hover:bg-blue-600 rounded">Master Usaha</a></li>
-                                <li><a href="/settings/keterangan" className="block p-2 hover:bg-blue-600 rounded">Keterangan</a></li>
-                                <li><a href="/settings/fee-apps" className="block p-2 hover:bg-blue-600 rounded">Fee Apps</a></li>
+                                <li><a href="/settings/setting" className="block p-2 hover:bg-blue-600 rounded">Setting</a></li>
                             </ul>
                         )}
                     </li>
