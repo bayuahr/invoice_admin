@@ -1,52 +1,68 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Sidebar } from "./components/Sidebar";
-import { useRouter } from "next/router";
-
-export default function TambahInvoice() {
-    // Header
-    const generateInvoiceNumber = async () => {
-        const date = new Date().toISOString().split("T")[0];
-        const year = date.split("-")[0].slice(2, 4); // Ambil 2 digit terakhir tahun
-        const month = date.split("-")[1]; // Ambil bulan
-        const prefix = `INV${year}${month}`; // Contoh: "INV2503"
-
-        const { data, error } = await supabase
-            .from("INVOICES")
-            .select("NO")
-            .like("NO", `${prefix}%`) // Filter hanya yang sesuai dengan bulan & tahun
-            .order("NO", { ascending: false }) // Urutkan dari terbesar ke terkecil
-            .limit(1); // Ambil yang terbesar
-
-        if (error) {
-            console.error("Error fetching invoices:", error);
-            return;
-        }
-
-        // Ambil nomor terakhir, jika tidak ada, mulai dari "000000"
-        const lastNumber = data?.[0]?.NO?.slice(7) || "000000";
-        console.log(lastNumber)
-        const nextNumber = (parseInt(lastNumber, 10) + 1).toString().padStart(5, "0");
-
-        // Format nomor invoice baru
-        const newInvoiceNumber = `${prefix}${nextNumber}`;
-        return newInvoiceNumber;
-    }
+import { supabase } from "@/lib/supabase";
+export default function EditInvoice() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const invoiceId = searchParams.get("id");
+
+    const [invoice, setInvoice] = useState(null);
     const [partners, setPartners] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [listUsaha, setListUsaha] = useState([]);
-    const [invoice, setInvoice] = useState({
-        NO: "",
-        TANGGAL: new Date().toISOString().split("T")[0],
-        METODE: "",
-        PAYMENT: "",
-        KWITANSI: "",
-        CUSTOMER: "",
-        PARTNER_ID: "",
-        USAHA_ID: ""
-    });
+
     const [gross, setGross] = useState(0);
     const [diskon, setDiskon] = useState(0);
+
+    const [rows, setRows] = useState([]);
+    useEffect(() => {
+        const fetchInvoice = async () => {
+            if (!invoiceId) return;
+            setLoading(true);
+
+            const { data, error } = await supabase
+                .from("INVOICES")
+                .select("*")
+                .eq("NO", invoiceId)
+                .single();
+
+            if (error) {
+                console.error("Error fetching invoice:", error);
+                return;
+            }
+
+            setInvoice(data);
+            setLoading(false);
+        };
+
+        const fetchPartners = async () => {
+            const { data, error } = await supabase.from("PARTNER").select("*");
+            if (error) console.error("Error fetching partners:", error);
+            else setPartners(data);
+        };
+
+        const fetchDetail = async () => {
+            const { data, error } = await supabase.from("DETAIL_INVOICE").select("*").eq("INVOICES_NO", invoiceId);
+            
+            if (error) {
+                console.error("Error fetching DETAIL INVOICE:", error);
+            } else {
+               
+                const processedData = data.map((item) => ({
+                    ...item,
+                    netAmount: item.UNIT_PRICE * item.QTY, 
+                }));
+                
+                setRows(processedData);
+            }
+        }
+
+        fetchInvoice();
+        fetchPartners();
+        fetchDetail();
+    }, [invoiceId]);
+
     useEffect(() => {
         const fetchUsaha = async () => {
             const { data, error } = await supabase.from("USAHA").select("*");
@@ -56,58 +72,10 @@ export default function TambahInvoice() {
 
         fetchUsaha();
     }, []);
-    useEffect(() => {
-        const fetchPartners = async () => {
-            const { data, error } = await supabase.from("PARTNER").select("*");
-            if (error) console.error(error);
-            else setPartners(data);
-        };
 
-        fetchPartners();
-    }, []);
-
-    useEffect(() => {
-        const fetchInvoiceNumber = async () => {
-            const newNumber = await generateInvoiceNumber();
-            setInvoice((prev) => ({ ...prev, NO: newNumber! }));
-        };
-
-        fetchInvoiceNumber();
-    }, []);
     const handleChange = (e) => {
         setInvoice({ ...invoice, [e.target.name]: e.target.value });
     };
-    const handleSubmit = async () => {
-        console.log("Submitting invoice...");
-        const { error: invoiceError } = await supabase.from("INVOICES").insert(invoice);
-        if (invoiceError) {
-            console.error("Invoice insert error:", invoiceError);
-            return;
-        }
-
-        console.log("Invoice inserted successfully");
-        const cleanedRows = rows.map(({ netAmount, ...rest }) => rest);
-        const { error: detailError } = await supabase.from("DETAIL_INVOICE").insert(cleanedRows);
-        if (detailError) {
-            console.error("Detail insert error:", detailError);
-            return;
-        }
-
-        console.log("Detail invoice inserted successfully");
-        alert("Invoice berhasil ditambahkan");
-
-        router.push("/invoices");
-    };
-
-    // Detail Invoice
-    const [rows, setRows] = useState([
-        { SUB: 1, DESCRIPTION: "", QTY: 0, UNIT_PRICE: 0, netAmount: "", INVOICES_NO: invoice.NO },
-    ]);
-    useEffect(() => {
-        if (invoice.NO) {
-            setRows([{ SUB: 1, DESCRIPTION: "", QTY: 0, UNIT_PRICE: 0, netAmount: "", INVOICES_NO: invoice.NO }]);
-        }
-    }, [invoice.NO]);
 
     const addRow = () => {
         setRows([...rows, { SUB: rows.length + 1, DESCRIPTION: "", QTY: 0, UNIT_PRICE: 0, netAmount: "", INVOICES_NO: invoice.NO }]);
@@ -152,11 +120,33 @@ export default function TambahInvoice() {
         }
         fetchKeterangan()
     }, [])
+    const handleSubmit = async () => {
+        console.log("Submitting invoice...");
+        
+        const { error: invoiceError } = await supabase.from("INVOICES").upsert(invoice);
+        if (invoiceError) {
+            console.error("Invoice update error:", invoiceError);
+            return;
+        }
+
+        console.log("Invoice inserted successfully");
+        const cleanedRows = rows.map(({ netAmount, ...rest }) => rest);
+        const { error: detailError } = await supabase.from("DETAIL_INVOICE").upsert(cleanedRows);
+        if (detailError) {
+            console.error("Detail insert error:", detailError);
+            return;
+        }
+
+        console.log("Detail invoice inserted successfully");
+        alert("Invoice berhasil ditambahkan");
+
+        router.push("/invoices");
+    };
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
             <div className="flex-1 p-6">
-                <h1 className="text-3xl font-bold mb-4">Tambah Invoice</h1>
+                <h1 className="text-3xl font-bold mb-4">Edit Invoice</h1>
                 <hr />
                 <h1 className="text-3xl font-bold mb-4 text-center">Invoice</h1>
                 {/* Informasi Invoice */}
@@ -166,7 +156,7 @@ export default function TambahInvoice() {
                         <input
                             type="text"
                             name="NO"
-                            value={invoice.NO}
+                            value={invoice?.NO}
                             onChange={handleChange}
                             className="w-full p-2 border rounded bg-gray-200"
 
@@ -178,7 +168,7 @@ export default function TambahInvoice() {
                         <input
                             type="date"
                             name="TANGGAL"
-                            value={invoice.TANGGAL}
+                            value={invoice?.TANGGAL}
                             onChange={handleChange}
                             className="w-full p-2 border rounded"
 
@@ -192,7 +182,7 @@ export default function TambahInvoice() {
                         <label className="block text-sm font-medium">Metode Transaksi</label>
                         <select
                             name="METODE"
-                            value={invoice.METODE}
+                            value={invoice?.METODE}
                             onChange={handleChange}
                             className="w-full p-2 border rounded"
 
@@ -206,7 +196,7 @@ export default function TambahInvoice() {
                         <label className="block text-sm font-medium">Payment</label>
                         <select
                             name="PAYMENT"
-                            value={invoice.PAYMENT}
+                            value={invoice?.PAYMENT}
                             onChange={handleChange}
                             className="w-full p-2 border rounded"
 
@@ -224,7 +214,7 @@ export default function TambahInvoice() {
                         <label className="block text-sm font-medium">KWITANSI</label>
                         <select
                             name="KWITANSI"
-                            value={invoice.KWITANSI}
+                            value={invoice?.KWITANSI}
                             onChange={handleChange}
                             className="w-full p-2 border rounded"
 
@@ -237,7 +227,7 @@ export default function TambahInvoice() {
                     <div>
                         <label className="block text-sm font-medium">Partner</label>
                         <select
-                            value={invoice.PARTNER_ID}
+                            value={invoice?.PARTNER_ID}
                             onChange={handleChange}
                             className="w-full p-2 border rounded"
                             name="PARTNER_ID"
@@ -258,7 +248,7 @@ export default function TambahInvoice() {
                         <label className="block text-sm font-medium">CUSTOMER</label>
                         <input type="text"
                             name="CUSTOMER"
-                            value={invoice.CUSTOMER}
+                            value={invoice?.CUSTOMER}
                             onChange={handleChange}
                             className="w-full p-2 border rounded"
                             placeholder="Masukkan Nama CUSTOMER"
@@ -267,7 +257,7 @@ export default function TambahInvoice() {
                     <div>
                         <label className="block text-sm font-medium">Usaha</label>
                         <select
-                            value={invoice.USAHA_ID}
+                            value={invoice?.USAHA_ID}
                             onChange={handleChange}
                             className="w-full p-2 border rounded"
                             name="USAHA_ID"
