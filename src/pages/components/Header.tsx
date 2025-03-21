@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/router";
+import { User } from "@supabase/supabase-js";
 export const Header = () => {
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState<User | null>(null);
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
     useEffect(() => {
