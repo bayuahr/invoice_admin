@@ -9,9 +9,9 @@ import { Header } from "../components/Header";
 export default function Setting() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
-    const [setting, setSetting] = useState([]);
+    const [setting, setSetting] = useState<any>([]);
     const [modalIsOpen, setModalIsOpen] = useState(false);
-    const [formData, setFormData] = useState({});
+    const [formData, setFormData] = useState<any>({});
     const [isEdit, setIsEdit] = useState(false);
 
     useEffect(() => {
@@ -27,12 +27,12 @@ export default function Setting() {
 
 
     const columns = [
-        { name: "NO", selector: (row, index) => index + 1, sortable: false ,width:'100px'},
-        { name: "FEE (%)", selector: (row) => row.FEE + ' %', sortable: true ,width:'100px' },
-        { name: "KETERANGAN", selector: (row) => row.KETERANGAN_INVOICES, sortable: true  ,width:'850px'},
+        { name: "NO", selector: (row:any, index:any) => index + 1, sortable: false ,width:'100px'},
+        { name: "FEE (%)", selector: (row:any) => row.FEE + ' %', sortable: true ,width:'100px' },
+        { name: "KETERANGAN", selector: (row:any) => row.KETERANGAN_INVOICES, sortable: true  ,width:'850px'},
         {
             name: "Actions",
-            cell: (row) => (
+            cell: (row:any) => (
                 <div className="space-x-3">
                     <button className="bg-blue-500 text-white px-3 py-1 rounded" onClick={() => openEditModal(row)}><Pencil size={14} /></button>
                 </div>
@@ -46,7 +46,7 @@ export default function Setting() {
         setModalIsOpen(true);
     };
 
-    const openEditModal = (usaha) => {
+    const openEditModal = (usaha:any) => {
         setIsEdit(true);
         setFormData(usaha);
         setModalIsOpen(true);

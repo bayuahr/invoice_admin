@@ -33,8 +33,8 @@ export default function TambahInvoice() {
         return newInvoiceNumber;
     }
     const router = useRouter();
-    const [partners, setPartners] = useState([]);
-    const [listUsaha, setListUsaha] = useState([]);
+    const [partners, setPartners] = useState<any>([]);
+    const [listUsaha, setListUsaha] = useState<any>([]);
     const [invoice, setInvoice] = useState({
         NO: "",
         TANGGAL: new Date().toISOString().split("T")[0],
@@ -74,7 +74,7 @@ export default function TambahInvoice() {
 
         fetchInvoiceNumber();
     }, []);
-    const handleChange = (e) => {
+    const handleChange = (e:any) => {
         setInvoice({ ...invoice, [e.target.name]: e.target.value });
     };
     const handleSubmit = async () => {
@@ -113,7 +113,7 @@ export default function TambahInvoice() {
         setRows([...rows, { SUB: rows.length + 1, DESCRIPTION: "", QTY: 0, UNIT_PRICE: 0, netAmount: "", INVOICES_NO: invoice.NO }]);
     };
 
-    const deleteRow = (id) => {
+    const deleteRow = (id:any) => {
         const updatedRows = rows.filter(row => row.SUB !== id);
 
         const normalizedRows = updatedRows.map((row, index) => ({
@@ -124,7 +124,7 @@ export default function TambahInvoice() {
         setRows(normalizedRows);
     };
 
-    const handleChange2 = (id, field, value) => {
+    const handleChange2 = (id:any, field:any, value:any) => {
         const updatedRows = rows.map(row =>
             row.SUB === id ? { ...row, [field]: value } : row
         );
@@ -243,7 +243,7 @@ export default function TambahInvoice() {
                             name="PARTNER_ID"
                         >
                             <option value="">-- Pilih Partner --</option>
-                            {partners.map((partner) => (
+                            {partners.map((partner:any) => (
                                 <option key={partner.ID} value={partner.ID}>
                                     {partner.NAMA}
                                 </option>
@@ -273,7 +273,7 @@ export default function TambahInvoice() {
                             name="USAHA_ID"
                         >
                             <option value="">-- Pilih Usaha --</option>
-                            {listUsaha.map((usaha) => (
+                            {listUsaha.map((usaha:any) => (
                                 <option key={usaha.ID_USAHA} value={usaha.ID_USAHA}>
                                     {usaha.NAMA_USAHA}
                                 </option>

@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Sidebar } from "./components/Sidebar";
 import DataTable from "react-data-table-component";
-import { DateRangePicker } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
+import { DateRangePicker } from "react-date-range";
 import { format } from "date-fns";
 import { useRouter } from "next/router";
 import { Pencil, Printer, Trash } from "lucide-react";
@@ -12,8 +12,8 @@ import { Header } from "./components/Header";
 
 export default function Invoices() {
     
-    const [invoices, setInvoices] = useState([]);
-    const [partners, setPartners] = useState([]);
+    const [invoices, setInvoices] = useState<any>([]);
+    const [partners, setPartners] = useState<any>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [partnerFilter, setPartnerFilter] = useState("");
@@ -28,12 +28,13 @@ export default function Invoices() {
 
     const router = useRouter();
 
-    const getNamaPartner = (partnerId) => {
-        const partner = partners.find((p) => p.ID === partnerId);
+    const getNamaPartner = (partnerId : any) => {
+        const partner:any = partners.find((p:any) => p.ID === partnerId);
         return partner ? partner.NAMA : "";
     };
 
     useEffect(() => {
+
         const fetchInvoices = async () => {
             setLoading(true);
             let query = supabase.from("INVOICES").select("*,DETAIL_INVOICE(UNIT_PRICE,QTY)");
@@ -52,10 +53,10 @@ export default function Invoices() {
                 console.error(error);
             }
             else {
-                const processedData = data.map((invoice) => ({
+                const processedData:any = data.map((invoice) => ({
                     ...invoice,
                     total: invoice.DETAIL_INVOICE.reduce(
-                        (sum, detail) => sum + detail.UNIT_PRICE * detail.QTY, 0
+                        (sum:any, detail:any) => sum + detail.UNIT_PRICE * detail.QTY, 0
                     ),
                 }));
 
@@ -77,27 +78,27 @@ export default function Invoices() {
         fetchPartners();
     }, []);
 
-    const handleSearch = (event) => {
+    const handleSearch = (event:any) => {
         setSearch(event.target.value);
     };
 
-    const handleDateSelect = (ranges) => {
+    const handleDateSelect = (ranges:any) => {
         setDateRange([ranges.selection]);
     };
 
-    const filteredInvoices = invoices.filter((invoice) =>
+    const filteredInvoices = invoices.filter((invoice:any) =>
         invoice.NO.toLowerCase().includes(search.toLowerCase())
     );
 
-    const columns = [
-        { name: "NO", selector: (row, index) => index + 1, sortable: false },
-        { name: "TANGGAL", selector: (row) => row.TANGGAL, sortable: true },
-        { name: "INVOICES", selector: (row) => row.NO, sortable: true },
-        { name: "PARTNER", selector: (row) => getNamaPartner(row.PARTNER_ID), sortable: false },
-        { name: "NOMINAL", selector: (row) => `${row.total}`, sortable: false },
+    const columns:any = [
+        { name: "NO", selector: (row: any, index: number) => index + 1, sortable: false },
+        { name: "TANGGAL", selector: (row: any) => row.TANGGAL, sortable: true },
+        { name: "INVOICES", selector: (row: any) => row.NO, sortable: true },
+        { name: "PARTNER", selector: (row: any) => getNamaPartner(row.PARTNER_ID), sortable: false },
+        { name: "NOMINAL", selector: (row: any) => `${row.total}`, sortable: false },
         {
             name: "Actions",
-            cell: (row) => (
+            cell: (row: { NO: any; }) => (
                 <div className="space-x-3">
                     <button className="bg-blue-500 text-white px-3 py-1 rounded" onClick={()=>handleEdit(row.NO)}><Pencil size={14} /></button>
                     <button className="bg-red-500 text-white px-3 py-1 rounded" onClick={() => handleDelete(row.NO)}><Trash size={14} /></button>
@@ -107,11 +108,11 @@ export default function Invoices() {
         },
     ];
 
-    const handleEdit = (id) => {
+    const handleEdit = (id: any) => {
         router.push(`/edit_invoice?id=${id}`);
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id: any) => {
         if (!confirm("Apakah Anda yakin ingin menghapus invoice ini?")) return;
 
         setLoading(true);
@@ -120,12 +121,12 @@ export default function Invoices() {
         if (error) {
             console.error("Gagal menghapus invoice:", error);
         } else {
-            setInvoices(invoices.filter((invoice) => invoice.NO !== id));
+            setInvoices(invoices.filter((invoice: { NO: any; }) => invoice.NO !== id));
         }
         setLoading(false);
     };
 
-    const handlePrint = (id) => {
+    const handlePrint = (id: any) => {
         router.push(`/print_invoice/${id}`);
     };
 
@@ -167,7 +168,7 @@ export default function Invoices() {
                             className="p-2 border rounded w-1/4"
                         >
                             <option value="">Semua Partner</option>
-                            {partners.map((partner) => (
+                            {partners.map((partner: any) => (
                                 <option key={partner.ID} value={partner.ID}>
                                     {partner.NAMA}
                                 </option>

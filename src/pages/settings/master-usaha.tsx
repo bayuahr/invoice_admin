@@ -11,7 +11,7 @@ export default function MasterUsaha() {
     const [search, setSearch] = useState("");
     const [masterUsaha, setMasterUsaha] = useState<any>([]);
     const [modalIsOpen, setModalIsOpen] = useState(false);
-    const [formData, setFormData] = useState({});
+    const [formData, setFormData] = useState<any>({});
     const [isEdit, setIsEdit] = useState(false);
     
     useEffect(() => {
@@ -25,21 +25,21 @@ export default function MasterUsaha() {
         fetchMasterUsaha();
     }, []);
 
-    const handleSearch = (event) => {
+    const handleSearch = (event:any) => {
         setSearch(event.target.value);
     };
 
-    const filteredMasterUsaha = masterUsaha.filter((usaha) =>
+    const filteredMasterUsaha = masterUsaha.filter((usaha:any) =>
         usaha.NAMA_USAHA.toLowerCase().includes(search.toLowerCase())
     );
 
     const columns = [
-        { name: "NO", selector: (row, index) => index + 1, sortable: false },
-        { name: "NAMA USAHA", selector: (row) => row.NAMA_USAHA, sortable: true },
-        { name: "DESKRIPSI", selector: (row) => row.DESKRIPSI_USAHA, sortable: true },
+        { name: "NO", selector: (row:any, index:any) => index + 1, sortable: false },
+        { name: "NAMA USAHA", selector: (row:any) => row.NAMA_USAHA, sortable: true },
+        { name: "DESKRIPSI", selector: (row:any) => row.DESKRIPSI_USAHA, sortable: true },
         {
             name: "Actions",
-            cell: (row) => (
+            cell: (row:any) => (
                 <div className="space-x-3">
                     <button className="bg-blue-500 text-white px-3 py-1 rounded" onClick={() => openEditModal(row)}><Pencil size={14} /></button>
                     <button className="bg-red-500 text-white px-3 py-1 rounded" onClick={() => handleDelete(row.ID_USAHA)}><Trash size={14} /></button>
@@ -54,7 +54,7 @@ export default function MasterUsaha() {
         setModalIsOpen(true);
     };
 
-    const openEditModal = (usaha) => {
+    const openEditModal = (usaha:any) => {
         setIsEdit(true);
         setFormData(usaha);
         setModalIsOpen(true);
@@ -70,7 +70,7 @@ export default function MasterUsaha() {
         window.location.reload();
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (id:any) => {
         if (confirm("Apakah Anda yakin ingin menghapus usaha ini?")) {
             await supabase.from("USAHA").delete().eq("ID_USAHA", id);
             window.location.reload();
