@@ -1,4 +1,4 @@
-import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, Key, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Sidebar } from "./components/Sidebar";
 import { supabase } from "@/lib/supabase";
@@ -284,7 +284,7 @@ export default function EditInvoice() {
                             </tr>
                         </thead>
                         <tbody>
-                            {rows.map((row: { SUB: Key | null | undefined; DESCRIPTION: string | number | readonly string[] | undefined; QTY: string | number | readonly string[] | undefined; UNIT_PRICE: string | number | readonly string[] | undefined; }, index: number) => (
+                            {rows.map((row:any, index: number) => (
                                 <tr key={row.SUB}>
                                     <td className="border p-2 text-center">{index + 1}</td>
                                     <td className="border p-2">
