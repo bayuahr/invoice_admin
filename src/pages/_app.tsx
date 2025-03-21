@@ -1,6 +1,22 @@
-import "@/styles/globals.css";
-import type { AppProps } from "next/app";
+import { useEffect, useState } from "react";
+import { AppProps } from "next/app";
+import { supabase } from "../lib/supabase";
+import "../styles/globals.css";
 
-export default function App({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />;
+export default function MyApp({ Component, pageProps }: AppProps) {
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
+
+    fetchUser();
+  }, []);
+
+  return (
+   
+      <Component {...pageProps} />
+   );
 }
