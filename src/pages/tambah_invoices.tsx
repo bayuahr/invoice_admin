@@ -3,35 +3,20 @@ import { supabase } from "@/lib/supabase";
 import { Sidebar } from "../components/Sidebar";
 import { useRouter } from "next/router";
 
+
 export default function TambahInvoice() {
+     // Fungsi untuk memformat angka menjadi format 000.000
+     const formatNumber = (num: number | string) => {
+        if (!num) return "0"; // Jika kosong, tampilkan default
+        return parseFloat(num.toString().replace(/\./g, ""))
+            .toLocaleString("id-ID");
+    };
+
+    // Fungsi untuk menghapus titik pemisah ribuan sebelum disimpan
+    const parseNumber = (numStr: string) => {
+        return numStr.replace(/\./g, ""); // Hapus titik sebelum diproses
+    };
     // Header
-    const generateInvoiceNumber = async () => {
-        const date = new Date().toISOString().split("T")[0];
-        const year = date.split("-")[0].slice(2, 4); // Ambil 2 digit terakhir tahun
-        const month = date.split("-")[1]; // Ambil bulan
-        const prefix = `INV${year}${month}`; // Contoh: "INV2503"
-
-        const { data, error } = await supabase
-            .from("INVOICES")
-            .select("NO")
-            .like("NO", `${prefix}%`) // Filter hanya yang sesuai dengan bulan & tahun
-            .order("NO", { ascending: false }) // Urutkan dari terbesar ke terkecil
-            .limit(1); // Ambil yang terbesar
-
-        if (error) {
-            console.error("Error fetching invoices:", error);
-            return;
-        }
-
-        // Ambil nomor terakhir, jika tidak ada, mulai dari "000000"
-        const lastNumber = data?.[0]?.NO?.slice(7) || "000000";
-        console.log(lastNumber)
-        const nextNumber = (parseInt(lastNumber, 10) + 1).toString().padStart(5, "0");
-
-        // Format nomor invoice baru
-        const newInvoiceNumber = `${prefix}${nextNumber}`;
-        return newInvoiceNumber;
-    }
     const router = useRouter();
     const [partners, setPartners] = useState<any>([]);
     const [listUsaha, setListUsaha] = useState<any>([]);
@@ -167,6 +152,8 @@ export default function TambahInvoice() {
             setSelectedPayment(value);
             setIsAdding(false);
         }
+        setInvoice({ ...invoice, ['PAYMENT']: e.target.value });
+
     };
 
     const handleAddPayment = async () => {
@@ -187,6 +174,11 @@ export default function TambahInvoice() {
         }
         fetchPayment()
     }, [])
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, sub: any, key: string) => {
+        const rawValue = parseNumber(e.target.value); // Remove non-numeric characters
+        handleChange2(sub, key, rawValue); // Update state with clean number
+    };
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
@@ -204,6 +196,7 @@ export default function TambahInvoice() {
                             value={invoice.NO}
                             onChange={handleChange}
                             className="w-full p-2 border rounded"
+                            autoComplete="off"
                         />
                     </div>
                     <div>
@@ -269,6 +262,7 @@ export default function TambahInvoice() {
                                 </button>
                             </div>
                         )}
+                        
                     </div>
                 </div>
 
@@ -316,6 +310,8 @@ export default function TambahInvoice() {
                             onChange={handleChange}
                             className="w-full p-2 border rounded"
                             placeholder="Masukkan Nama CUSTOMER"
+                            autoComplete="off"
+
                         />
                     </div>
                     <div>
@@ -362,23 +358,23 @@ export default function TambahInvoice() {
                                         <input
                                             type="number"
                                             className="w-full p-1 border rounded"
-                                            value={row.QTY}
+                                            value={(row.QTY)}
                                             onChange={(e) => handleChange2(row.SUB, "QTY", e.target.value)}
                                         />
                                     </td>
                                     <td className="border p-2">
                                         <input
-                                            type="number"
+                                            type="text"
                                             className="w-full p-1 border rounded"
-                                            value={row.UNIT_PRICE}
-                                            onChange={(e) => handleChange2(row.SUB, "UNIT_PRICE", e.target.value)}
+                                            value={formatNumber(row.UNIT_PRICE)}
+                                            onChange={(e) => handleInputChange(e,row.SUB, "UNIT_PRICE")}
                                         />
                                     </td>
                                     <td className="border p-2">
                                         <input
-                                            type="number"
+                                            type="text"
                                             className="w-full p-1 border rounded"
-                                            value={(row.QTY) * (row.UNIT_PRICE) || 0}
+                                            value={formatNumber((row.QTY) * (row.UNIT_PRICE)) || 0}
                                             readOnly
                                         />
                                     </td>
@@ -406,16 +402,16 @@ export default function TambahInvoice() {
                         <div className="w-80 bg-white shadow-lg rounded-2xl p-4 border">
                             <div className="flex justify-between text-lg font-semibold">
                                 <span>Gross Total:</span>
-                                <span className="text-gray-700">{gross}</span>
+                                <span className="text-gray-700">{formatNumber(gross)}</span>
                             </div>
                             <div className="flex justify-between text-lg font-semibold mt-2">
                                 <span>Diskon:</span>
-                                <span className="text-red-500">- {diskon}</span>
+                                <span className="text-red-500">- {formatNumber(diskon)}</span>
                             </div>
                             <hr className="my-3 border-gray-300" />
                             <div className="flex justify-between text-xl font-bold">
                                 <span>Total:</span>
-                                <span className="text-green-600">{gross - diskon}</span>
+                                <span className="text-green-600">{formatNumber(gross - diskon)}</span>
                             </div>
                         </div>
                     </div>

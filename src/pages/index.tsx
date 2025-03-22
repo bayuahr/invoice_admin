@@ -46,6 +46,7 @@ const styles = StyleSheet.create({
         fontSize: 8,
         marginBottom: 2
     },
+    
     text: {
         fontSize: 8,
         marginLeft: 5,
@@ -59,6 +60,11 @@ const styles = StyleSheet.create({
     text3: {
         fontSize: 8,
         marginLeft: 12,
+        marginBottom: 2
+    },
+    text4: {
+        fontSize: 8,
+        marginLeft: 10,
         marginBottom: 2
     },
     table: {
@@ -123,14 +129,11 @@ const styles = StyleSheet.create({
     },
 });
 
-const formatRupiah = (value: number) => {
-    return new Intl.NumberFormat("id-ID", {
-        style: "currency",
-        currency: "IDR",
-        minimumFractionDigits: 0,
-    }).format(value);
+const formatRupiah = (num: number | string) => {
+    if (!num) return "0"; // Jika kosong, tampilkan default
+    return parseFloat(num.toString().replace(/\./g, ""))
+        .toLocaleString("id-ID");
 };
-
 const terbilangRupiah = (num: number): string => {
     const units = ["", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan"];
     const teens = ["sepuluh", "sebelas", "dua belas", "tiga belas", "empat belas", "lima belas", "enam belas", "tujuh belas", "delapan belas", "sembilan belas"];
@@ -249,7 +252,7 @@ const InvoiceDocument = ({ invoiceNumber }: { invoiceNumber: string }) => {
                             </View>
                             <View style={styles.row}>
                                 <Text style={styles.label}>&nbsp;</Text>
-                                <Text style={styles.text3}>{dataUsaha.DESKRIPSI_USAHA}</Text>
+                                <Text style={styles.text4}>{dataUsaha.DESKRIPSI_USAHA}</Text>
                             </View>
                             <View style={styles.row}>
                                 <Text style={styles.label}>Customer</Text>

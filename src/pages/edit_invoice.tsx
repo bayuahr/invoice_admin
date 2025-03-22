@@ -2,7 +2,20 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Sidebar } from "../components/Sidebar";
 import { supabase } from "@/lib/supabase";
+
+
 export default function EditInvoice() {
+    // Fungsi untuk memformat angka menjadi format 000.000
+    const formatNumber = (num: number | string) => {
+        if (!num) return "0"; // Jika kosong, tampilkan default
+        return parseFloat(num.toString().replace(/\./g, ""))
+            .toLocaleString("id-ID");
+    };
+
+    // Fungsi untuk menghapus titik pemisah ribuan sebelum disimpan
+    const parseNumber = (numStr: string) => {
+        return numStr.replace(/\./g, ""); // Hapus titik sebelum diproses
+    };
     const router = useRouter();
     const searchParams = useSearchParams();
     const invoiceId = searchParams.get("id");
@@ -46,16 +59,16 @@ export default function EditInvoice() {
 
         const fetchDetail = async () => {
             const { data, error } = await supabase.from("DETAIL_INVOICE").select("*").eq("INVOICES_NO", invoiceId);
-            
+
             if (error) {
                 console.error("Error fetching DETAIL INVOICE:", error);
             } else {
-               
+
                 const processedData = data.map((item) => ({
                     ...item,
-                    netAmount: item.UNIT_PRICE * item.QTY, 
+                    netAmount: item.UNIT_PRICE * item.QTY,
                 }));
-                
+
                 setRows(processedData);
             }
         }
@@ -75,7 +88,7 @@ export default function EditInvoice() {
         fetchUsaha();
     }, []);
 
-    const handleChange = (e : any) => {
+    const handleChange = (e: any) => {
         setInvoice({ ...invoice, [e.target.name]: e.target.value });
         console.log(invoice)
     };
@@ -84,7 +97,7 @@ export default function EditInvoice() {
         setRows([...rows, { SUB: rows.length + 1, DESCRIPTION: "", QTY: 0, UNIT_PRICE: 0, netAmount: "", INVOICES_NO: invoice.NO }]);
     };
 
-    const deleteRow = (id:any) => {
+    const deleteRow = (id: any) => {
         const updatedRows = rows.filter((row: { SUB: any; }) => row.SUB !== id);
 
         const normalizedRows = updatedRows.map((row: any, index: number) => ({
@@ -125,7 +138,7 @@ export default function EditInvoice() {
     }, [])
     const handleSubmit = async () => {
         console.log("Submitting invoice...");
-        
+
         const { error: invoiceError } = await supabase.from("INVOICES").upsert(invoice);
         if (invoiceError) {
             console.error("Invoice update error:", invoiceError);
@@ -134,7 +147,7 @@ export default function EditInvoice() {
 
         console.log("Invoice inserted successfully");
         await supabase.from("DETAIL_INVOICE").delete().eq("INVOICES_NO", invoice.NO);
-        const cleanedRows = rows.map(({ netAmount, ...rest }:any) => rest);
+        const cleanedRows = rows.map(({ netAmount, ...rest }: any) => rest);
         const { error: detailError } = await supabase.from("DETAIL_INVOICE").insert(cleanedRows);
         if (detailError) {
             console.error("Detail insert error:", detailError);
@@ -167,8 +180,8 @@ export default function EditInvoice() {
 
     const handleAddPayment = async () => {
         if (customPayment.trim() && !paymentOptions.includes(customPayment)) {
-            await supabase.from("PAYMENT").insert({'NAMA': customPayment});
-            setPaymentOptions([...paymentOptions, {'NAMA': customPayment}]);
+            await supabase.from("PAYMENT").insert({ 'NAMA': customPayment });
+            setPaymentOptions([...paymentOptions, { 'NAMA': customPayment }]);
             setSelectedPayment(customPayment);
             setInvoice({ ...invoice, ['PAYMENT']: customPayment });
 
@@ -185,6 +198,11 @@ export default function EditInvoice() {
         }
         fetchPayment()
     }, [])
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, sub: any, key: string) => {
+        const rawValue = parseNumber(e.target.value); // Remove non-numeric characters
+        handleChange2(sub, key, rawValue); // Update state with clean number
+    };
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
@@ -201,9 +219,8 @@ export default function EditInvoice() {
                             name="NO"
                             value={invoice?.NO}
                             onChange={handleChange}
-                            className="w-full p-2 border rounded bg-gray-200"
-
-                            readOnly
+                            className="w-full p-2 border rounded"
+                            autoComplete="off"
                         />
                     </div>
                     <div>
@@ -244,7 +261,7 @@ export default function EditInvoice() {
                             className="w-full p-2 border rounded"
                         >
                             <option value="">-- Pilih Payment --</option>
-                            {paymentOptions.map((option:any, index:any) => (
+                            {paymentOptions.map((option: any, index: any) => (
                                 <option key={index} value={option.NAMA}>
                                     {option.NAMA}
                                 </option>
@@ -297,7 +314,7 @@ export default function EditInvoice() {
                             name="PARTNER_ID"
                         >
                             <option value="">-- Pilih Partner --</option>
-                            {partners.map((partner : any)=> (
+                            {partners.map((partner: any) => (
                                 <option key={partner.ID} value={partner.ID}>
                                     {partner.NAMA}
                                 </option>
@@ -316,6 +333,7 @@ export default function EditInvoice() {
                             onChange={handleChange}
                             className="w-full p-2 border rounded"
                             placeholder="Masukkan Nama CUSTOMER"
+                            autoComplete="off"
                         />
                     </div>
                     <div>
@@ -327,7 +345,7 @@ export default function EditInvoice() {
                             name="USAHA_ID"
                         >
                             <option value="">-- Pilih Usaha --</option>
-                            {listUsaha.map((usaha:any) => (
+                            {listUsaha.map((usaha: any) => (
                                 <option key={usaha.ID_USAHA} value={usaha.ID_USAHA}>
                                     {usaha.NAMA_USAHA}
                                 </option>
@@ -348,7 +366,7 @@ export default function EditInvoice() {
                             </tr>
                         </thead>
                         <tbody>
-                            {rows.map((row:any, index: number) => (
+                            {rows.map((row: any, index: number) => (
                                 <tr key={row.SUB}>
                                     <td className="border p-2 text-center">{index + 1}</td>
                                     <td className="border p-2">
@@ -362,23 +380,23 @@ export default function EditInvoice() {
                                         <input
                                             type="number"
                                             className="w-full p-1 border rounded"
-                                            value={row.QTY}
+                                            value={(row.QTY ?? 0)}
                                             onChange={(e) => handleChange2(row.SUB, "QTY", e.target.value)}
                                         />
                                     </td>
                                     <td className="border p-2">
                                         <input
-                                            type="number"
+                                            type="text"
                                             className="w-full p-1 border rounded"
-                                            value={row.UNIT_PRICE}
-                                            onChange={(e) => handleChange2(row.SUB, "UNIT_PRICE", e.target.value)}
+                                            value={formatNumber(Number(row.UNIT_PRICE) || 0)}
+                                            onChange={(e) => handleInputChange(e,row.SUB, "UNIT_PRICE")}
                                         />
                                     </td>
                                     <td className="border p-2">
                                         <input
-                                            type="number"
+                                            type="text"
                                             className="w-full p-1 border rounded"
-                                            value={(Number(row.QTY) * Number(row.UNIT_PRICE)) || 0}
+                                            value={formatNumber(Number(row.QTY) * Number(row.UNIT_PRICE)) || 0}
                                             readOnly
                                         />
                                     </td>
@@ -406,16 +424,16 @@ export default function EditInvoice() {
                         <div className="w-80 bg-white shadow-lg rounded-2xl p-4 border">
                             <div className="flex justify-between text-lg font-semibold">
                                 <span>Gross Total:</span>
-                                <span className="text-gray-700">{gross}</span>
+                                <span className="text-gray-700">{formatNumber(gross)}</span>
                             </div>
                             <div className="flex justify-between text-lg font-semibold mt-2">
                                 <span>Diskon:</span>
-                                <span className="text-red-500">- {diskon}</span>
+                                <span className="text-red-500">- {formatNumber(diskon)}</span>
                             </div>
                             <hr className="my-3 border-gray-300" />
                             <div className="flex justify-between text-xl font-bold">
                                 <span>Total:</span>
-                                <span className="text-green-600">{gross - diskon}</span>
+                                <span className="text-green-600">{formatNumber(gross - diskon)}</span>
                             </div>
                         </div>
                     </div>
