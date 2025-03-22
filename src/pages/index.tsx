@@ -9,15 +9,410 @@ import { format } from "date-fns";
 import { useRouter } from "next/router";
 import { Pencil, Printer, Trash } from "lucide-react";
 import { Header } from "../components/Header";
+import {
+    Document,
+    Page,
+    Text,
+    View,
+    StyleSheet,
+    PDFDownloadLink,
+    PDFViewer,
+} from "@react-pdf/renderer";
 
+// Define styles
+const styles = StyleSheet.create({
+    page: { padding: 20 },
+    section: { marginBottom: 10, border: "1px solid black", padding: 20 },
+    title: { fontSize: 14, fontWeight: "bold", textAlign: "center", marginBottom: 5 },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    label: {
+        width: 75,
+        textAlign: 'left',
+        fontWeight: 'bold',
+        fontSize: 12,
+        marginBottom: 5
+    },
+    label2: {
+        width: 100,
+        textAlign: 'left',
+        fontWeight: 'bold',
+        fontSize: 12,
+        marginBottom: 5
+    },
+    text: {
+        fontSize: 12,
+        marginLeft: 5,
+        marginBottom: 5
+    },
+    text2: {
+        fontSize: 12,
+        marginLeft: 32,
+        marginBottom: 5
+    },
+    table: {
+        marginTop: 10,
+        borderWidth: 1,
+        borderColor: '#000',
+    },
+    tableRow: {
+        flexDirection: 'row',
+        borderBottomWidth: 1,
+        borderBottomColor: '#000',
+        paddingVertical: 5,
+    },
+    tableHeader: {
+        backgroundColor: '#eee',
+    },
+    tableCell: {
+        flex: 1,
+        textAlign: 'center',
+        padding: 2,
+        fontSize: 12
+    },
+    headerCell: {
+        fontWeight: 'bold',
+    },
+    rowWhite: {
+        backgroundColor: '#fff',
+    },
+    rowGrey: {
+        backgroundColor: '#f2f2f2',
+    },
+    keterangan: {
+        marginTop: 10,
+        marginBottom: 10
+    },
+    totals: {
+        marginTop: 10,
+        flexDirection: "column",
+        alignItems: "flex-end",
+        marginBottom: 5,
+    },
+    rowTotal: {
+        width:200,
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 5,
+    },
+    labelTotal: {
+        flex: 1, 
+        fontWeight: "bold",
+        fontSize: 14,
+    },
+    separatorTotal: {
+        width: 10, 
+        textAlign: "center",
+    },
+    textTotal: {
+        flex: 1,
+        textAlign: "right",
+        fontSize: 14,
+    },
+});
+
+const formatRupiah = (value: number) => {
+    return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        minimumFractionDigits: 0,
+    }).format(value);
+};
+
+const terbilangRupiah = (num: number): string => {
+    const units = ["", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan"];
+    const teens = ["sepuluh", "sebelas", "dua belas", "tiga belas", "empat belas", "lima belas", "enam belas", "tujuh belas", "delapan belas", "sembilan belas"];
+    const tens = ["", "", "dua puluh", "tiga puluh", "empat puluh", "lima puluh", "enam puluh", "tujuh puluh", "delapan puluh", "sembilan puluh"];
+    const thousands = ["", "ribu", "juta", "miliar", "triliun"];
+
+    if (num === 0) return "nol";
+
+    let words = "";
+    let i = 0;
+
+    while (num > 0) {
+        let chunk = num % 1000;
+        if (chunk) {
+            let chunkWords = "";
+
+            if (chunk >= 100) {
+                chunkWords += chunk === 100 ? "seratus " : units[Math.floor(chunk / 100)] + " ratus ";
+                chunk %= 100;
+            }
+            if (chunk >= 10 && chunk < 20) {
+                chunkWords += teens[chunk - 10] + " ";
+            } else if (chunk >= 20) {
+                chunkWords += tens[Math.floor(chunk / 10)] + " ";
+                chunk %= 10;
+            }
+            if (chunk > 0 && chunk < 10) {
+                chunkWords += units[chunk] + " ";
+            }
+
+            if (i === 1 && chunk === 1) {
+                words = "seribu " + words;
+            } else {
+                words = chunkWords + thousands[i] + " " + words;
+            }
+        }
+        num = Math.floor(num / 1000);
+        i++;
+    }
+
+    return words.trim();
+};
+
+const InvoiceDocument = ({ invoiceNumber }: { invoiceNumber: string }) => {
+    const [data, setData] = useState<any>(null);
+    const [dataUsaha, setDataUsaha] = useState<any>(null);
+    const [dataPartner, setDataPartner] = useState<any>(null);
+    const [keterangan, setKeterangan] = useState("");
+    const [fee, setFee] = useState(0);
+    const [diskon, setDiskon] = useState(0);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const { data: invoice } = await supabase
+                .from("INVOICES")
+                .select("*, DETAIL_INVOICE(*)")
+                .eq("NO", invoiceNumber)
+                .single();
+
+            if (invoice) {
+                const processedInvoice = {
+                    ...invoice,
+                    total: invoice.DETAIL_INVOICE?.reduce(
+                        (sum: number, detail: any) => sum + (detail.UNIT_PRICE || 0) * (detail.QTY || 0),
+                        0
+                    ),
+                };
+
+                setData(processedInvoice);
+
+                const { data: usaha } = await supabase
+                    .from("USAHA")
+                    .select("NAMA_USAHA, DESKRIPSI_USAHA")
+                    .eq("ID_USAHA", invoice.USAHA_ID)
+                    .single();
+                setDataUsaha(usaha);
+                const { data: partner } = await supabase
+                    .from("PARTNER")
+                    .select("NAMA")
+                    .eq("ID", invoice.PARTNER_ID)
+                    .single();
+                setDataPartner(partner);
+            }
+        };
+        const fetchKeterangan = async () => {
+            const { data, error } = await supabase.from("SETTINGS").select("KETERANGAN_INVOICES").single();
+            if (error) console.error(error);
+            else setKeterangan(data.KETERANGAN_INVOICES);
+        }
+
+        const fetchFee = async () => {
+            const { data, error } = await supabase.from("SETTINGS").select("FEE").single();
+            if (error) console.error(error);
+            else setFee(data.FEE);
+        }
+        fetchFee()
+        fetchKeterangan()
+        fetchData();
+    }, [invoiceNumber]);
+
+
+    // if (!data || !dataUsaha || !dataPartner) return <Text>Loading...</Text>;
+    if (data && dataUsaha && dataPartner) {
+
+        return (
+            <Document>
+                <Page size="A4" style={styles.page}>
+                    <View>
+                        <Text style={styles.title}>INVOICE</Text>
+                    </View>
+                    <View style={styles.header}>
+                        <View>
+                            <View style={styles.row}>
+                                <Text style={styles.label}>Nama Usaha</Text>
+                                <Text style={styles.text}>: {dataUsaha.NAMA_USAHA}</Text>
+                            </View>
+                            <View style={styles.row}>
+                                <Text style={styles.label}>Deskripsi Usaha</Text>
+                                <Text style={styles.text}>: {dataUsaha.DESKRIPSI_USAHA}</Text>
+                            </View>
+                            <View style={styles.row}>
+                                <Text style={styles.label}>Customer</Text>
+                                <Text style={styles.text}>: {data.CUSTOMER}</Text>
+                            </View>
+                            <View style={styles.row}>
+                                <Text style={styles.label}>Partner</Text>
+                                <Text style={styles.text}>: {dataPartner.NAMA}</Text>
+                            </View>
+                        </View>
+
+                        <View>
+                            <View style={styles.row}>
+                                <Text style={styles.label}>No Invoice</Text>
+                                <Text style={styles.text}>: {data.NO}</Text>
+                            </View>
+                            <View style={styles.row}>
+                                <Text style={styles.label}>Tanggal</Text>
+                                <Text style={styles.text}>: {data.TANGGAL}</Text>
+                            </View>
+                            <View style={styles.row}>
+                                <Text style={styles.label}>Metode Trx</Text>
+                                <Text style={styles.text}>: {data.METODE}</Text>
+                            </View>
+                            <View style={styles.row}>
+                                <Text style={styles.label}>Payment</Text>
+                                <Text style={styles.text}>: {data.PAYMENT}</Text>
+                            </View>
+                            <View style={styles.row}>
+                                <Text style={styles.label}>Kwitansi</Text>
+                                <Text style={styles.text}>: {data.KWITANSI}</Text>
+                            </View>
+                        </View>
+                    </View>
+                    {/* Tabel */}
+                    <View style={styles.table}>
+                        {/* Header Tabel */}
+                        <View style={[styles.tableRow, styles.tableHeader]}>
+                            <Text style={[styles.tableCell, styles.headerCell]}>No</Text>
+                            <Text style={[styles.tableCell, styles.headerCell]}>Deskripsi</Text>
+                            <Text style={[styles.tableCell, styles.headerCell]}>Qty</Text>
+                            <Text style={[styles.tableCell, styles.headerCell]}>Harga</Text>
+                            <Text style={[styles.tableCell, styles.headerCell]}>Subtotal</Text>
+                        </View>
+
+                        {/* Data dalam tabel */}
+                        {data.DETAIL_INVOICE.map((item: any, index: number) => (
+                            <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.rowWhite : styles.rowGrey]}>
+                                <Text style={styles.tableCell}>{index + 1}</Text>
+                                <Text style={styles.tableCell}>{item.DESCRIPTION}</Text>
+                                <Text style={styles.tableCell}>{item.QTY}</Text>
+                                <Text style={styles.tableCell}>{item.UNIT_PRICE}</Text>
+                                <Text style={styles.tableCell}>{item.QTY * item.UNIT_PRICE}</Text>
+                            </View>
+                        ))}
+                    </View>
+                    <View style={styles.keterangan}>
+                        <Text style={styles.text}>{keterangan}</Text>
+                    </View>
+                    <View style={styles.totals}>
+                        <View style={styles.rowTotal}>
+                            <Text style={styles.labelTotal}>Gross Total</Text>
+                            <Text style={styles.separatorTotal}>:</Text>
+                            <Text style={styles.textTotal}>{formatRupiah(data.total)}</Text>
+                        </View>
+                        <View style={styles.rowTotal}>
+                            <Text style={styles.labelTotal}>Diskon</Text>
+                            <Text style={styles.separatorTotal}>:</Text>
+                            <Text style={styles.textTotal}>{formatRupiah(diskon)}</Text>
+                        </View>
+                        <View style={styles.rowTotal}>
+                            <Text style={styles.labelTotal}>Net Total</Text>
+                            <Text style={styles.separatorTotal}>:</Text>
+                            <Text style={styles.textTotal}>{formatRupiah(data.total - diskon)}</Text>
+                        </View>
+                    </View>
+
+                </Page>
+                <Page size="A4" style={styles.page}>
+                    <View>
+                        <Text style={styles.title}>KWITANSI PEMBAYARAN</Text>
+                    </View>
+                    <View style={styles.header}>
+                        <View>
+                            <View style={styles.row}>
+                                <Text style={styles.label2}>Telah Terima Dari </Text>
+                                <Text style={styles.text}>: {dataUsaha.NAMA_USAHA}</Text>
+                            </View>
+                            <View style={styles.row}>
+                                <Text style={styles.label}>&nbsp;</Text>
+                                <Text style={styles.text2}>{dataUsaha.DESKRIPSI_USAHA}</Text>
+                            </View>
+                            <View style={styles.row}>
+                                <Text style={styles.label2}>Sejumlah Uang</Text>
+                                <Text style={styles.text}>: {formatRupiah(data.total - diskon)}</Text>
+                            </View>
+                            <View style={styles.row}>
+                                <Text style={[styles.text,{fontStyle:"italic"}]}>( {terbilangRupiah(data.total-diskon)} rupiah )</Text>
+                            </View>
+                        </View>
+
+                        <View>
+                            <View style={styles.row}>
+                                <Text style={styles.label}>No Invoice</Text>
+                                <Text style={styles.text}>: {data.NO}</Text>
+                            </View>
+                            <View style={styles.row}>
+                                <Text style={styles.label}>Metode</Text>
+                                <Text style={styles.text}>: {data.KWITANSI}</Text>
+                            </View>
+                        </View>
+                    </View>
+                    {/* Tabel */}
+                    <View style={styles.table}>
+                        {/* Header Tabel */}
+                        <View style={[styles.tableRow, styles.tableHeader]}>
+                            <Text style={[styles.tableCell, styles.headerCell]}>No</Text>
+                            <Text style={[styles.tableCell, styles.headerCell]}>Deskripsi</Text>
+                            <Text style={[styles.tableCell, styles.headerCell]}>Qty</Text>
+                            <Text style={[styles.tableCell, styles.headerCell]}>Harga</Text>
+                            <Text style={[styles.tableCell, styles.headerCell]}>Subtotal</Text>
+                        </View>
+
+                        {/* Data dalam tabel */}
+                        {data.DETAIL_INVOICE.map((item: any, index: number) => (
+                            <View key={index} style={[styles.tableRow, index % 2 === 0 ? styles.rowWhite : styles.rowGrey]}>
+                                <Text style={styles.tableCell}>{index + 1}</Text>
+                                <Text style={styles.tableCell}>{item.DESCRIPTION}</Text>
+                                <Text style={styles.tableCell}>{item.QTY}</Text>
+                                <Text style={styles.tableCell}>{item.UNIT_PRICE}</Text>
+                                <Text style={styles.tableCell}>{item.QTY * item.UNIT_PRICE}</Text>
+                            </View>
+                        ))}
+                    </View>
+                    <View style={styles.keterangan}>
+                        <Text style={styles.text}>{keterangan}</Text>
+                    </View>
+                    <View style={styles.totals}>
+                        <View style={styles.rowTotal}>
+                            <Text style={styles.labelTotal}>Gross Total</Text>
+                            <Text style={styles.separatorTotal}>:</Text>
+                            <Text style={styles.textTotal}>{formatRupiah(data.total)}</Text>
+                        </View>
+                        <View style={styles.rowTotal}>
+                            <Text style={styles.labelTotal}>Diskon</Text>
+                            <Text style={styles.separatorTotal}>:</Text>
+                            <Text style={styles.textTotal}>{formatRupiah(Math.round(fee*data.total/100))}</Text>
+                        </View>
+                        <View style={styles.rowTotal}>
+                            <Text style={styles.labelTotal}>Net Total</Text>
+                            <Text style={styles.separatorTotal}>:</Text>
+                            <Text style={styles.textTotal}>{formatRupiah(data.total - (Math.round(fee*data.total/100)))}</Text>
+                        </View>
+                    </View>
+
+                </Page>
+            </Document>
+        );
+    }
+};
 export default function Invoices() {
-    
+
     const [invoices, setInvoices] = useState<any>([]);
     const [partners, setPartners] = useState<any>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [partnerFilter, setPartnerFilter] = useState("");
     const [showDatePicker, setShowDatePicker] = useState(false);
+    const [previewInvoice, setPreviewInvoice] = useState(null);
     const [dateRange, setDateRange] = useState([
         {
             startDate: new Date(),
@@ -28,8 +423,8 @@ export default function Invoices() {
 
     const router = useRouter();
 
-    const getNamaPartner = (partnerId : any) => {
-        const partner:any = partners.find((p:any) => p.ID === partnerId);
+    const getNamaPartner = (partnerId: any) => {
+        const partner: any = partners.find((p: any) => p.ID === partnerId);
         return partner ? partner.NAMA : "";
     };
 
@@ -53,10 +448,10 @@ export default function Invoices() {
                 console.error(error);
             }
             else {
-                const processedData:any = data.map((invoice) => ({
+                const processedData: any = data.map((invoice) => ({
                     ...invoice,
                     total: invoice.DETAIL_INVOICE.reduce(
-                        (sum:any, detail:any) => sum + detail.UNIT_PRICE * detail.QTY, 0
+                        (sum: any, detail: any) => sum + detail.UNIT_PRICE * detail.QTY, 0
                     ),
                 }));
 
@@ -78,31 +473,38 @@ export default function Invoices() {
         fetchPartners();
     }, []);
 
-    const handleSearch = (event:any) => {
+    const handleSearch = (event: any) => {
         setSearch(event.target.value);
     };
 
-    const handleDateSelect = (ranges:any) => {
+    const handleDateSelect = (ranges: any) => {
         setDateRange([ranges.selection]);
     };
 
-    const filteredInvoices = invoices.filter((invoice:any) =>
+    const filteredInvoices = invoices.filter((invoice: any) =>
         invoice.NO.toLowerCase().includes(search.toLowerCase())
     );
 
-    const columns:any = [
+    const columns: any = [
         { name: "NO", selector: (row: any, index: number) => index + 1, sortable: false },
         { name: "TANGGAL", selector: (row: any) => row.TANGGAL, sortable: true },
         { name: "INVOICES", selector: (row: any) => row.NO, sortable: true },
         { name: "PARTNER", selector: (row: any) => getNamaPartner(row.PARTNER_ID), sortable: false },
-        { name: "NOMINAL", selector: (row: any) => `${row.total}`, sortable: false },
+        { name: "NOMINAL", selector: (row: any) => `${formatRupiah(row.total)}`, sortable: false },
         {
             name: "Actions",
             cell: (row: { NO: any; }) => (
                 <div className="space-x-3">
-                    <button className="bg-blue-500 text-white px-3 py-1 rounded" onClick={()=>handleEdit(row.NO)}><Pencil size={14} /></button>
+                    <button className="bg-blue-500 text-white px-3 py-1 rounded" onClick={() => handleEdit(row.NO)}><Pencil size={14} /></button>
                     <button className="bg-red-500 text-white px-3 py-1 rounded" onClick={() => handleDelete(row.NO)}><Trash size={14} /></button>
-                    <button className="bg-green-500 text-white px-3 py-1 rounded"><Printer size={14} /></button>
+                    {/* <PDFDownloadLink key={row.NO} document={<InvoiceDocument invoiceNumber={row.NO} />} fileName={`invoice_${row.NO}.pdf`}>
+                        <button className="bg-green-500 text-white px-3 py-1 rounded">
+                            <Printer size={14} />
+                        </button>
+                    </PDFDownloadLink> */}
+                    <button className="bg-green-500 text-white px-3 py-1 rounded" onClick={() => setPreviewInvoice(row.NO)}>
+                        <Printer size={14} />
+                    </button>
                 </div>
             ),
         },
@@ -127,7 +529,9 @@ export default function Invoices() {
     };
 
     const handlePrint = (id: any) => {
-        router.push(`/print_invoice/${id}`);
+        <PDFDownloadLink document={<InvoiceDocument invoiceNumber={id} />} fileName="invoice.pdf">
+            {({ loading }) => (loading ? "Loading document..." : "Download PDF")}
+        </PDFDownloadLink>
     };
 
     return (
@@ -185,7 +589,23 @@ export default function Invoices() {
                     </div>
                 </div>
             </div>
-
+            {previewInvoice && (
+                <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white p-4 rounded-lg shadow-lg w-3/4 h-3/4 flex flex-col">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-xl font-bold">Pratinjau Invoice</h2>
+                            <button className="text-red-500 text-lg font-bold" onClick={() => setPreviewInvoice(null)}>
+                                ✖
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-auto">
+                            <PDFViewer width="100%" height="500px">
+                                <InvoiceDocument invoiceNumber={previewInvoice} />
+                            </PDFViewer>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

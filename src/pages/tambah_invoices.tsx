@@ -66,15 +66,15 @@ export default function TambahInvoice() {
         fetchPartners();
     }, []);
 
-    useEffect(() => {
-        const fetchInvoiceNumber = async () => {
-            const newNumber = await generateInvoiceNumber();
-            setInvoice((prev) => ({ ...prev, NO: newNumber! }));
-        };
+    // useEffect(() => {
+    //     const fetchInvoiceNumber = async () => {
+    //         const newNumber = await generateInvoiceNumber();
+    //         setInvoice((prev) => ({ ...prev, NO: newNumber! }));
+    //     };
 
-        fetchInvoiceNumber();
-    }, []);
-    const handleChange = (e:any) => {
+    //     fetchInvoiceNumber();
+    // }, []);
+    const handleChange = (e: any) => {
         setInvoice({ ...invoice, [e.target.name]: e.target.value });
     };
     const handleSubmit = async () => {
@@ -113,7 +113,7 @@ export default function TambahInvoice() {
         setRows([...rows, { SUB: rows.length + 1, DESCRIPTION: "", QTY: 0, UNIT_PRICE: 0, netAmount: "", INVOICES_NO: invoice.NO }]);
     };
 
-    const deleteRow = (id:any) => {
+    const deleteRow = (id: any) => {
         const updatedRows = rows.filter(row => row.SUB !== id);
 
         const normalizedRows = updatedRows.map((row, index) => ({
@@ -124,7 +124,7 @@ export default function TambahInvoice() {
         setRows(normalizedRows);
     };
 
-    const handleChange2 = (id:any, field:any, value:any) => {
+    const handleChange2 = (id: any, field: any, value: any) => {
         const updatedRows = rows.map(row =>
             row.SUB === id ? { ...row, [field]: value } : row
         );
@@ -152,6 +152,41 @@ export default function TambahInvoice() {
         }
         fetchKeterangan()
     }, [])
+
+    // PAYMENT
+    const [paymentOptions, setPaymentOptions] = useState<any>([]);
+    const [selectedPayment, setSelectedPayment] = useState("");
+    const [customPayment, setCustomPayment] = useState("");
+    const [isAdding, setIsAdding] = useState(false);
+
+    const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value;
+        if (value === "custom") {
+            setIsAdding(true);
+        } else {
+            setSelectedPayment(value);
+            setIsAdding(false);
+        }
+    };
+
+    const handleAddPayment = async () => {
+        if (customPayment.trim() && !paymentOptions.includes(customPayment)) {
+            await supabase.from("PAYMENT").insert({'NAMA': customPayment});
+            setPaymentOptions([...paymentOptions, {'NAMA': customPayment}]);
+            setSelectedPayment(customPayment);
+        }
+        setIsAdding(false);
+        setCustomPayment("");
+    };
+
+    useEffect(() => {
+        const fetchPayment = async () => {
+            const { data, error } = await supabase.from("PAYMENT").select("NAMA");
+            if (error) console.error(error);
+            else setPaymentOptions(data);
+        }
+        fetchPayment()
+    }, [])
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
@@ -168,9 +203,7 @@ export default function TambahInvoice() {
                             name="NO"
                             value={invoice.NO}
                             onChange={handleChange}
-                            className="w-full p-2 border rounded bg-gray-200"
-
-                            readOnly
+                            className="w-full p-2 border rounded"
                         />
                     </div>
                     <div>
@@ -206,15 +239,36 @@ export default function TambahInvoice() {
                         <label className="block text-sm font-medium">Payment</label>
                         <select
                             name="PAYMENT"
-                            value={invoice.PAYMENT}
-                            onChange={handleChange}
+                            value={selectedPayment}
+                            onChange={handleSelectChange}
                             className="w-full p-2 border rounded"
-
                         >
                             <option value="">-- Pilih Payment --</option>
-                            <option value="Credit Card">Credit Card</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
+                            {paymentOptions.map((option:any, index:any) => (
+                                <option key={index} value={option.NAMA}>
+                                    {option.NAMA}
+                                </option>
+                            ))}
+                            <option value="custom">+ Tambah Metode Baru</option>
                         </select>
+
+                        {isAdding && (
+                            <div className="mt-2 flex gap-2">
+                                <input
+                                    type="text"
+                                    value={customPayment}
+                                    onChange={(e) => setCustomPayment(e.target.value)}
+                                    placeholder="Masukkan metode pembayaran baru"
+                                    className="p-2 border rounded w-full"
+                                />
+                                <button
+                                    onClick={handleAddPayment}
+                                    className="bg-blue-500 text-white p-2 rounded"
+                                >
+                                    Tambah
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -243,7 +297,7 @@ export default function TambahInvoice() {
                             name="PARTNER_ID"
                         >
                             <option value="">-- Pilih Partner --</option>
-                            {partners.map((partner:any) => (
+                            {partners.map((partner: any) => (
                                 <option key={partner.ID} value={partner.ID}>
                                     {partner.NAMA}
                                 </option>
@@ -273,7 +327,7 @@ export default function TambahInvoice() {
                             name="USAHA_ID"
                         >
                             <option value="">-- Pilih Usaha --</option>
-                            {listUsaha.map((usaha:any) => (
+                            {listUsaha.map((usaha: any) => (
                                 <option key={usaha.ID_USAHA} value={usaha.ID_USAHA}>
                                     {usaha.NAMA_USAHA}
                                 </option>

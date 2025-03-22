@@ -23,6 +23,7 @@ export const Sidebar = () => {
                         {isSettingsOpen && (
                             <ul className="ml-4 mt-2 space-y-2">
                                 <li><a href="/settings/master-usaha" className="block p-2 hover:bg-blue-600 rounded">Master Usaha</a></li>
+                                <li><a href="/settings/master-partner" className="block p-2 hover:bg-blue-600 rounded">Master Partner</a></li>
                                 <li><a href="/settings/setting" className="block p-2 hover:bg-blue-600 rounded">Setting</a></li>
                             </ul>
                         )}
