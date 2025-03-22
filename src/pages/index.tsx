@@ -23,7 +23,7 @@ import {
 const styles = StyleSheet.create({
     page: { padding: 20 },
     section: { marginBottom: 10, border: "1px solid black", padding: 20 },
-    title: { fontSize: 8, fontWeight: "bold", textAlign: "center", marginBottom: 2 },
+    title: { fontSize: 8, fontWeight: "bold", textAlign: "center", marginBottom: 5 },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
