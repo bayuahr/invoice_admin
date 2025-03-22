@@ -77,6 +77,7 @@ export default function EditInvoice() {
 
     const handleChange = (e : any) => {
         setInvoice({ ...invoice, [e.target.name]: e.target.value });
+        console.log(invoice)
     };
 
     const addRow = () => {
@@ -132,8 +133,9 @@ export default function EditInvoice() {
         }
 
         console.log("Invoice inserted successfully");
+        await supabase.from("DETAIL_INVOICE").delete().eq("INVOICES_NO", invoice.NO);
         const cleanedRows = rows.map(({ netAmount, ...rest }:any) => rest);
-        const { error: detailError } = await supabase.from("DETAIL_INVOICE").upsert(cleanedRows);
+        const { error: detailError } = await supabase.from("DETAIL_INVOICE").insert(cleanedRows);
         if (detailError) {
             console.error("Detail insert error:", detailError);
             return;
@@ -159,6 +161,8 @@ export default function EditInvoice() {
             setSelectedPayment(value);
             setIsAdding(false);
         }
+        setInvoice({ ...invoice, ['PAYMENT']: e.target.value });
+
     };
 
     const handleAddPayment = async () => {
@@ -166,6 +170,8 @@ export default function EditInvoice() {
             await supabase.from("PAYMENT").insert({'NAMA': customPayment});
             setPaymentOptions([...paymentOptions, {'NAMA': customPayment}]);
             setSelectedPayment(customPayment);
+            setInvoice({ ...invoice, ['PAYMENT']: customPayment });
+
         }
         setIsAdding(false);
         setCustomPayment("");

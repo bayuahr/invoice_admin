@@ -23,7 +23,7 @@ import {
 const styles = StyleSheet.create({
     page: { padding: 20 },
     section: { marginBottom: 10, border: "1px solid black", padding: 20 },
-    title: { fontSize: 14, fontWeight: "bold", textAlign: "center", marginBottom: 5 },
+    title: { fontSize: 8, fontWeight: "bold", textAlign: "center", marginBottom: 2 },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -36,30 +36,30 @@ const styles = StyleSheet.create({
         width: 75,
         textAlign: 'left',
         fontWeight: 'bold',
-        fontSize: 12,
-        marginBottom: 5
+        fontSize: 8,
+        marginBottom: 2
     },
     label2: {
         width: 100,
         textAlign: 'left',
         fontWeight: 'bold',
-        fontSize: 12,
-        marginBottom: 5
+        fontSize: 8,
+        marginBottom: 2
     },
     text: {
-        fontSize: 12,
+        fontSize: 8,
         marginLeft: 5,
-        marginBottom: 5
+        marginBottom: 2
     },
     text2: {
-        fontSize: 12,
+        fontSize: 8,
         marginLeft: 32,
-        marginBottom: 5
+        marginBottom: 2
     },
     text3: {
-        fontSize: 12,
+        fontSize: 8,
         marginLeft: 12,
-        marginBottom: 5
+        marginBottom: 2
     },
     table: {
         marginTop: 10,
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         borderBottomWidth: 1,
         borderBottomColor: '#000',
-        paddingVertical: 5,
+        paddingVertical: 2,
     },
     tableHeader: {
         backgroundColor: '#eee',
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
         flex: 1,
         textAlign: 'center',
         padding: 2,
-        fontSize: 12
+        fontSize: 8
     },
     headerCell: {
         fontWeight: 'bold',
@@ -98,27 +98,28 @@ const styles = StyleSheet.create({
         marginTop: 10,
         flexDirection: "column",
         alignItems: "flex-end",
-        marginBottom: 5,
+        marginBottom: 2,
     },
     rowTotal: {
-        width: 200,
+        width: 125,
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 5,
+        marginBottom: 2,
     },
     labelTotal: {
         flex: 1,
         fontWeight: "bold",
-        fontSize: 14,
+        fontSize: 8,
     },
     separatorTotal: {
         width: 10,
         textAlign: "center",
+        fontSize: 8,
     },
     textTotal: {
         flex: 1,
         textAlign: "right",
-        fontSize: 14,
+        fontSize: 8,
     },
 });
 
@@ -236,7 +237,7 @@ const InvoiceDocument = ({ invoiceNumber }: { invoiceNumber: string }) => {
 
         return (
             <Document>
-                <Page size="A4" style={styles.page}>
+                <Page size={[425.25, 567]} style={styles.page}>
                     <View>
                         <Text style={styles.title}>INVOICE</Text>
                     </View>
@@ -296,8 +297,8 @@ const InvoiceDocument = ({ invoiceNumber }: { invoiceNumber: string }) => {
                                 <Text style={styles.tableCell}>{index + 1}</Text>
                                 <Text style={styles.tableCell}>{item.DESCRIPTION}</Text>
                                 <Text style={styles.tableCell}>{item.QTY}</Text>
-                                <Text style={styles.tableCell}>{item.UNIT_PRICE}</Text>
-                                <Text style={styles.tableCell}>{item.QTY * item.UNIT_PRICE}</Text>
+                                <Text style={styles.tableCell}>{formatRupiah(item.UNIT_PRICE)}</Text>
+                                <Text style={styles.tableCell}>{formatRupiah(item.QTY * item.UNIT_PRICE)}</Text>
                             </View>
                         ))}
                     </View>
@@ -372,8 +373,8 @@ const InvoiceDocument = ({ invoiceNumber }: { invoiceNumber: string }) => {
                                 <Text style={styles.tableCell}>{index + 1}</Text>
                                 <Text style={styles.tableCell}>{item.DESCRIPTION}</Text>
                                 <Text style={styles.tableCell}>{item.QTY}</Text>
-                                <Text style={styles.tableCell}>{item.UNIT_PRICE}</Text>
-                                <Text style={styles.tableCell}>{item.QTY * item.UNIT_PRICE}</Text>
+                                <Text style={styles.tableCell}>{formatRupiah(item.UNIT_PRICE)}</Text>
+                                <Text style={styles.tableCell}>{formatRupiah(item.QTY * item.UNIT_PRICE)}</Text>
                             </View>
                         ))}
                     </View>
