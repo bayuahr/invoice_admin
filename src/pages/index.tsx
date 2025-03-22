@@ -384,7 +384,7 @@ const InvoiceDocument = ({ invoiceNumber }: { invoiceNumber: string }) => {
                             <Text style={styles.textTotal}>{formatRupiah(data.total)}</Text>
                         </View>
                         <View style={styles.rowTotal}>
-                            <Text style={styles.labelTotal}>Diskon</Text>
+                            <Text style={styles.labelTotal}>Aplikasi ({fee}%)</Text>
                             <Text style={styles.separatorTotal}>:</Text>
                             <Text style={styles.textTotal}>{formatRupiah(Math.round(fee * data.total / 100))}</Text>
                         </View>
