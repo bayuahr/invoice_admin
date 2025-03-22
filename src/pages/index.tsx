@@ -56,6 +56,11 @@ const styles = StyleSheet.create({
         marginLeft: 32,
         marginBottom: 5
     },
+    text3: {
+        fontSize: 12,
+        marginLeft: 12,
+        marginBottom: 5
+    },
     table: {
         marginTop: 10,
         borderWidth: 1,
@@ -96,18 +101,18 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     rowTotal: {
-        width:200,
+        width: 200,
         flexDirection: "row",
         alignItems: "center",
         marginBottom: 5,
     },
     labelTotal: {
-        flex: 1, 
+        flex: 1,
         fontWeight: "bold",
         fontSize: 14,
     },
     separatorTotal: {
-        width: 10, 
+        width: 10,
         textAlign: "center",
     },
     textTotal: {
@@ -242,8 +247,8 @@ const InvoiceDocument = ({ invoiceNumber }: { invoiceNumber: string }) => {
                                 <Text style={styles.text}>: {dataUsaha.NAMA_USAHA}</Text>
                             </View>
                             <View style={styles.row}>
-                                <Text style={styles.label}>Deskripsi Usaha</Text>
-                                <Text style={styles.text}>: {dataUsaha.DESKRIPSI_USAHA}</Text>
+                                <Text style={styles.label}>&nbsp;</Text>
+                                <Text style={styles.text3}>{dataUsaha.DESKRIPSI_USAHA}</Text>
                             </View>
                             <View style={styles.row}>
                                 <Text style={styles.label}>Customer</Text>
@@ -271,10 +276,6 @@ const InvoiceDocument = ({ invoiceNumber }: { invoiceNumber: string }) => {
                             <View style={styles.row}>
                                 <Text style={styles.label}>Payment</Text>
                                 <Text style={styles.text}>: {data.PAYMENT}</Text>
-                            </View>
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Kwitansi</Text>
-                                <Text style={styles.text}>: {data.KWITANSI}</Text>
                             </View>
                         </View>
                     </View>
@@ -321,10 +322,8 @@ const InvoiceDocument = ({ invoiceNumber }: { invoiceNumber: string }) => {
                         </View>
                     </View>
 
-                </Page>
-                <Page size="A4" style={styles.page}>
-                    <View>
-                        <Text style={styles.title}>KWITANSI PEMBAYARAN</Text>
+                    <View style={[{marginTop:10,borderTop:1,borderTopWidth:1,borderTopColor:'black',borderTopStyle:'dashed'}]}>
+                        <Text style={[styles.title,{marginTop:10}]}>KWITANSI PEMBAYARAN</Text>
                     </View>
                     <View style={styles.header}>
                         <View>
@@ -341,7 +340,7 @@ const InvoiceDocument = ({ invoiceNumber }: { invoiceNumber: string }) => {
                                 <Text style={styles.text}>: {formatRupiah(data.total - diskon)}</Text>
                             </View>
                             <View style={styles.row}>
-                                <Text style={[styles.text,{fontStyle:"italic"}]}>( {terbilangRupiah(data.total-diskon)} rupiah )</Text>
+                                <Text style={[styles.text, { fontStyle: "italic" }]}>( {terbilangRupiah(data.total - diskon)} rupiah )</Text>
                             </View>
                         </View>
 
@@ -378,9 +377,6 @@ const InvoiceDocument = ({ invoiceNumber }: { invoiceNumber: string }) => {
                             </View>
                         ))}
                     </View>
-                    <View style={styles.keterangan}>
-                        <Text style={styles.text}>{keterangan}</Text>
-                    </View>
                     <View style={styles.totals}>
                         <View style={styles.rowTotal}>
                             <Text style={styles.labelTotal}>Gross Total</Text>
@@ -390,16 +386,16 @@ const InvoiceDocument = ({ invoiceNumber }: { invoiceNumber: string }) => {
                         <View style={styles.rowTotal}>
                             <Text style={styles.labelTotal}>Diskon</Text>
                             <Text style={styles.separatorTotal}>:</Text>
-                            <Text style={styles.textTotal}>{formatRupiah(Math.round(fee*data.total/100))}</Text>
+                            <Text style={styles.textTotal}>{formatRupiah(Math.round(fee * data.total / 100))}</Text>
                         </View>
                         <View style={styles.rowTotal}>
                             <Text style={styles.labelTotal}>Net Total</Text>
                             <Text style={styles.separatorTotal}>:</Text>
-                            <Text style={styles.textTotal}>{formatRupiah(data.total - (Math.round(fee*data.total/100)))}</Text>
+                            <Text style={styles.textTotal}>{formatRupiah(data.total - (Math.round(fee * data.total / 100)))}</Text>
                         </View>
                     </View>
-
                 </Page>
+
             </Document>
         );
     }
@@ -519,7 +515,7 @@ export default function Invoices() {
 
         setLoading(true);
         const { error } = await supabase.from("DETAIL_INVOICE").delete().eq("INVOICES_NO", id);
-        
+
         if (error) {
             console.error("Gagal menghapus invoice:", error);
         } else {

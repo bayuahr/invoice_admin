@@ -32,6 +32,8 @@ export default function EditInvoice() {
                 return;
             }
 
+            setSelectedPayment(data.PAYMENT)
+
             setInvoice(data);
             setLoading(false);
         };
@@ -142,6 +144,41 @@ export default function EditInvoice() {
 
         router.push("/");
     };
+
+    // PAYMENT
+    const [paymentOptions, setPaymentOptions] = useState<any>([]);
+    const [selectedPayment, setSelectedPayment] = useState("");
+    const [customPayment, setCustomPayment] = useState("");
+    const [isAdding, setIsAdding] = useState(false);
+
+    const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value;
+        if (value === "custom") {
+            setIsAdding(true);
+        } else {
+            setSelectedPayment(value);
+            setIsAdding(false);
+        }
+    };
+
+    const handleAddPayment = async () => {
+        if (customPayment.trim() && !paymentOptions.includes(customPayment)) {
+            await supabase.from("PAYMENT").insert({'NAMA': customPayment});
+            setPaymentOptions([...paymentOptions, {'NAMA': customPayment}]);
+            setSelectedPayment(customPayment);
+        }
+        setIsAdding(false);
+        setCustomPayment("");
+    };
+
+    useEffect(() => {
+        const fetchPayment = async () => {
+            const { data, error } = await supabase.from("PAYMENT").select("NAMA");
+            if (error) console.error(error);
+            else setPaymentOptions(data);
+        }
+        fetchPayment()
+    }, [])
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
@@ -196,15 +233,36 @@ export default function EditInvoice() {
                         <label className="block text-sm font-medium">Payment</label>
                         <select
                             name="PAYMENT"
-                            value={invoice?.PAYMENT}
-                            onChange={handleChange}
+                            value={selectedPayment}
+                            onChange={handleSelectChange}
                             className="w-full p-2 border rounded"
-
                         >
                             <option value="">-- Pilih Payment --</option>
-                            <option value="Credit Card">Credit Card</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
+                            {paymentOptions.map((option:any, index:any) => (
+                                <option key={index} value={option.NAMA}>
+                                    {option.NAMA}
+                                </option>
+                            ))}
+                            <option value="custom">+ Tambah Metode Baru</option>
                         </select>
+
+                        {isAdding && (
+                            <div className="mt-2 flex gap-2">
+                                <input
+                                    type="text"
+                                    value={customPayment}
+                                    onChange={(e) => setCustomPayment(e.target.value)}
+                                    placeholder="Masukkan metode pembayaran baru"
+                                    className="p-2 border rounded w-full"
+                                />
+                                <button
+                                    onClick={handleAddPayment}
+                                    className="bg-blue-500 text-white p-2 rounded"
+                                >
+                                    Tambah
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
 
