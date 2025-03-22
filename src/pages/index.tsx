@@ -518,11 +518,13 @@ export default function Invoices() {
         if (!confirm("Apakah Anda yakin ingin menghapus invoice ini?")) return;
 
         setLoading(true);
-        const { error } = await supabase.from("INVOICES").delete().eq("NO", id);
-
+        const { error } = await supabase.from("DETAIL_INVOICE").delete().eq("INVOICES_NO", id);
+        
         if (error) {
             console.error("Gagal menghapus invoice:", error);
         } else {
+            const { error } = await supabase.from("INVOICES").delete().eq("NO", id);
+
             setInvoices(invoices.filter((invoice: { NO: any; }) => invoice.NO !== id));
         }
         setLoading(false);
