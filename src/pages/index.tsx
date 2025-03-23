@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     },
     text2: {
         fontSize: 8,
-        marginLeft: 32,
+        marginLeft: 34,
         marginBottom: 2
     },
     text3: {
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     },
     text4: {
         fontSize: 8,
-        marginLeft: 10,
+        marginLeft: 8.5,
         marginBottom: 2
     },
     table: {
