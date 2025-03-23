@@ -151,7 +151,7 @@ const terbilangRupiah = (num: number): string => {
             let chunkWords = "";
 
             if (chunk >= 100) {
-                chunkWords += chunk === 100 ? "seratus " : units[Math.floor(chunk / 100)] + " ratus ";
+                chunkWords += ((chunk === 100) ||(Math.floor(chunk / 100)==1)) ? "seratus " : units[Math.floor(chunk / 100)] + " ratus ";
                 chunk %= 100;
             }
             if (chunk >= 10 && chunk < 20) {
