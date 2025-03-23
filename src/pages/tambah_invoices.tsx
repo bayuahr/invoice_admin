@@ -5,8 +5,8 @@ import { useRouter } from "next/router";
 
 
 export default function TambahInvoice() {
-     // Fungsi untuk memformat angka menjadi format 000.000
-     const formatNumber = (num: number | string) => {
+    // Fungsi untuk memformat angka menjadi format 000.000
+    const formatNumber = (num: number | string) => {
         if (!num) return "0"; // Jika kosong, tampilkan default
         return parseFloat(num.toString().replace(/\./g, ""))
             .toLocaleString("id-ID");
@@ -28,7 +28,8 @@ export default function TambahInvoice() {
         KWITANSI: "",
         CUSTOMER: "",
         PARTNER_ID: "",
-        USAHA_ID: ""
+        USAHA_ID: "",
+        DISKON:0
     });
     const [gross, setGross] = useState(0);
     const [diskon, setDiskon] = useState(0);
@@ -158,8 +159,8 @@ export default function TambahInvoice() {
 
     const handleAddPayment = async () => {
         if (customPayment.trim() && !paymentOptions.includes(customPayment)) {
-            await supabase.from("PAYMENT").insert({'NAMA': customPayment});
-            setPaymentOptions([...paymentOptions, {'NAMA': customPayment}]);
+            await supabase.from("PAYMENT").insert({ 'NAMA': customPayment });
+            setPaymentOptions([...paymentOptions, { 'NAMA': customPayment }]);
             setSelectedPayment(customPayment);
         }
         setIsAdding(false);
@@ -237,7 +238,7 @@ export default function TambahInvoice() {
                             className="w-full p-2 border rounded"
                         >
                             <option value="">-- Pilih Payment --</option>
-                            {paymentOptions.map((option:any, index:any) => (
+                            {paymentOptions.map((option: any, index: any) => (
                                 <option key={index} value={option.NAMA}>
                                     {option.NAMA}
                                 </option>
@@ -262,7 +263,7 @@ export default function TambahInvoice() {
                                 </button>
                             </div>
                         )}
-                        
+
                     </div>
                 </div>
 
@@ -367,7 +368,7 @@ export default function TambahInvoice() {
                                             type="text"
                                             className="w-full p-1 border rounded"
                                             value={formatNumber(row.UNIT_PRICE)}
-                                            onChange={(e) => handleInputChange(e,row.SUB, "UNIT_PRICE")}
+                                            onChange={(e) => handleInputChange(e, row.SUB, "UNIT_PRICE")}
                                         />
                                     </td>
                                     <td className="border p-2">
@@ -406,12 +407,21 @@ export default function TambahInvoice() {
                             </div>
                             <div className="flex justify-between text-lg font-semibold mt-2">
                                 <span>Diskon:</span>
-                                <span className="text-red-500">- {formatNumber(diskon)}</span>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="text"
+                                        className="w-20 p-1 border rounded text-right"
+                                        placeholder="0"
+                                        name="DISKON"
+                                        value={invoice?.DISKON}
+                                        onChange={handleChange}
+                                    />
+                                </div>
                             </div>
                             <hr className="my-3 border-gray-300" />
                             <div className="flex justify-between text-xl font-bold">
                                 <span>Total:</span>
-                                <span className="text-green-600">{formatNumber(gross - diskon)}</span>
+                                <span className="text-green-600">{formatNumber(gross - invoice?.DISKON)}</span>
                             </div>
                         </div>
                     </div>

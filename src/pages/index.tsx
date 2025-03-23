@@ -317,12 +317,12 @@ const InvoiceDocument = ({ invoiceNumber }: { invoiceNumber: string }) => {
                         <View style={styles.rowTotal}>
                             <Text style={styles.labelTotal}>Diskon</Text>
                             <Text style={styles.separatorTotal}>:</Text>
-                            <Text style={styles.textTotal}>{formatRupiah(diskon)}</Text>
+                            <Text style={styles.textTotal}>{formatRupiah(data.DISKON)}</Text>
                         </View>
                         <View style={styles.rowTotal}>
                             <Text style={styles.labelTotal}>Net Total</Text>
                             <Text style={styles.separatorTotal}>:</Text>
-                            <Text style={styles.textTotal}>{formatRupiah(data.total - diskon)}</Text>
+                            <Text style={styles.textTotal}>{formatRupiah(data.total - data.DISKON)}</Text>
                         </View>
                     </View>
 
@@ -385,17 +385,17 @@ const InvoiceDocument = ({ invoiceNumber }: { invoiceNumber: string }) => {
                         <View style={styles.rowTotal}>
                             <Text style={styles.labelTotal}>Gross Total</Text>
                             <Text style={styles.separatorTotal}>:</Text>
-                            <Text style={styles.textTotal}>{formatRupiah(data.total)}</Text>
+                            <Text style={styles.textTotal}>{formatRupiah(data.total - data.DISKON)}</Text>
                         </View>
                         <View style={styles.rowTotal}>
                             <Text style={styles.labelTotal}>Aplikasi ({fee}%)</Text>
                             <Text style={styles.separatorTotal}>:</Text>
-                            <Text style={styles.textTotal}>{formatRupiah(Math.round(fee * data.total / 100))}</Text>
+                            <Text style={styles.textTotal}>{formatRupiah(Math.round(fee * (data.total - data.DISKON) / 100))}</Text>
                         </View>
                         <View style={styles.rowTotal}>
                             <Text style={styles.labelTotal}>Net Total</Text>
                             <Text style={styles.separatorTotal}>:</Text>
-                            <Text style={styles.textTotal}>{formatRupiah(data.total - (Math.round(fee * data.total / 100)))}</Text>
+                            <Text style={styles.textTotal}>{formatRupiah((data.total - data.DISKON) - (Math.round(fee * (data.total - data.DISKON) / 100)))}</Text>
                         </View>
                     </View>
                 </Page>
@@ -451,7 +451,7 @@ export default function Invoices() {
                 const processedData: any = data.map((invoice) => ({
                     ...invoice,
                     total: invoice.DETAIL_INVOICE.reduce(
-                        (sum: any, detail: any) => sum + detail.UNIT_PRICE * detail.QTY, 0
+                        (sum: any, detail: any) => sum - invoice.DISKON + detail.UNIT_PRICE * detail.QTY, 0
                     ),
                 }));
 

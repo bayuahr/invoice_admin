@@ -428,12 +428,21 @@ export default function EditInvoice() {
                             </div>
                             <div className="flex justify-between text-lg font-semibold mt-2">
                                 <span>Diskon:</span>
-                                <span className="text-red-500">- {formatNumber(diskon)}</span>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="text"
+                                        className="w-20 p-1 border rounded text-right"
+                                        placeholder="0"
+                                        name="DISKON"
+                                        value={invoice?.DISKON}
+                                        onChange={handleChange}
+                                    />
+                                </div>
                             </div>
                             <hr className="my-3 border-gray-300" />
                             <div className="flex justify-between text-xl font-bold">
                                 <span>Total:</span>
-                                <span className="text-green-600">{formatNumber(gross - diskon)}</span>
+                                <span className="text-green-600">{formatNumber(gross - invoice?.DISKON)}</span>
                             </div>
                         </div>
                     </div>
