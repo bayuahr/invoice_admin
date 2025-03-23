@@ -341,10 +341,10 @@ const InvoiceDocument = ({ invoiceNumber }: { invoiceNumber: string }) => {
                             </View>
                             <View style={styles.row}>
                                 <Text style={styles.label2}>Sejumlah Uang</Text>
-                                <Text style={styles.text}>: {formatRupiah(data.total - diskon)}</Text>
+                                <Text style={styles.text}>: {formatRupiah((data.total - data.DISKON) - (Math.round(fee * (data.total - data.DISKON) / 100)))}</Text>
                             </View>
                             <View style={styles.row}>
-                                <Text style={[styles.text, { fontStyle: "italic" }]}>( {terbilangRupiah(data.total - diskon)} rupiah )</Text>
+                                <Text style={[styles.text, { fontStyle: "italic" }]}>( {terbilangRupiah(((data.total - data.DISKON) - (Math.round(fee * (data.total - data.DISKON) / 100))))} rupiah )</Text>
                             </View>
                         </View>
 
